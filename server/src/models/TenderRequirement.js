@@ -1,0 +1,4 @@
+import mongoose from 'mongoose';
+const schema = new mongoose.Schema({ tenderId:{type:mongoose.Schema.Types.ObjectId,ref:'Tender',required:true,index:true}, type:{type:String,default:'technical'}, text:{type:String,required:true}, extractedValue:{type:String,default:''}, requiredStandard:{type:String,default:''}, matchedStandard:{type:mongoose.Schema.Types.ObjectId,ref:'Standard',default:null}, matchedStandards:[{type:mongoose.Schema.Types.ObjectId,ref:'Standard'}], status:{type:String,enum:['matched','partially_matched','missing','outdated_reference','review'],default:'review'}, confidence:{type:Number,min:0,max:1,default:0}, evidence:[mongoose.Schema.Types.Mixed], sourceReference:String, riskLevel:{type:String,enum:['low','medium','high','critical'],default:'low'} }, {timestamps:true});
+schema.index({tenderId:1,status:1});
+export default mongoose.model('TenderRequirement',schema);

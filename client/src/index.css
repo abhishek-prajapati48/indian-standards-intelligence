@@ -1,0 +1,286 @@
+@import "tailwindcss";
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:#f5f7fa;color:#172033}button,input{font:inherit}
+/* ================================
+   Recommendations UI
+   ================================ */
+
+.recommendations-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 28px 56px;
+}
+
+.recommendations-header {
+  margin-bottom: 28px;
+}
+
+.recommendations-header h1 {
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+
+.recommendations-header p {
+  max-width: 780px;
+  margin: 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Query box */
+
+.recommendation-query-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.recommendation-query-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.recommendation-query {
+  flex: 1;
+}
+
+.recommendation-query label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.recommendation-query textarea {
+  width: 100%;
+  min-height: 105px;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.recommendation-query textarea:focus {
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.12);
+}
+
+.recommend-button {
+  height: 46px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 10px;
+  background: #0f172a;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.recommend-button:hover {
+  transform: translateY(-1px);
+}
+
+.recommend-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Result sections */
+
+.recommendation-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 14px rgba(15, 23, 42, 0.035);
+}
+
+.recommendation-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.recommendation-section-header h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.language-badge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* AI analysis */
+
+.ai-analysis {
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Recommendation */
+
+.recommendation-empty {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.recommendation-list {
+  display: grid;
+  gap: 12px;
+}
+
+.recommendation-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 15px 16px;
+  background: #f8fafc;
+}
+
+.recommendation-item h3 {
+  margin: 0 0 5px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.recommendation-item p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Evidence */
+
+.evidence-list {
+  display: grid;
+  gap: 14px;
+}
+
+.evidence-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  padding: 17px;
+  background: #fff;
+}
+
+.evidence-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.evidence-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.evidence-source {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.evidence-similarity {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.evidence-text {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* Verification */
+
+.verification-note {
+  border-left: 3px solid #94a3b8;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 0 8px 8px 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Mobile */
+
+@media (max-width: 760px) {
+  .recommendations-page {
+    padding: 22px 16px 40px;
+  }
+
+  .recommendations-header h1 {
+    font-size: 25px;
+  }
+
+  .recommendation-query-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recommend-button {
+    width: 100%;
+  }
+
+  .recommendation-section {
+    padding: 17px;
+  }
+
+  .evidence-card-header {
+    flex-direction: column;
+  }
+}/* Tender Validation */
+.tender-page{max-width:1180px;margin:0 auto;padding:32px 28px 64px}.tender-header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:26px}.tender-header h1{margin:0;font-size:30px;line-height:1.2;font-weight:700}.tender-header p{margin:8px 0 0;color:#64748b;font-size:15px;line-height:1.6}.tender-policy{padding:7px 11px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:11px}.tender-panel{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:22px;margin-bottom:20px;box-shadow:0 3px 14px rgba(15,23,42,.035)}.tender-panel-title,.tender-report-header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}.tender-panel h2{margin:0;font-size:17px;color:#0f172a}.tender-panel h3{margin:0 0 12px;font-size:14px;color:#0f172a}.tender-panel-title p,.tender-report-header p{margin:5px 0 0;color:#64748b;font-size:12px}.tender-form-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}.tender-field{display:flex;flex-direction:column;gap:7px}.tender-field label{font-size:12px;font-weight:600;color:#334155}.tender-field input,.tender-field select,.tender-field textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#0f172a;padding:11px 12px;font:inherit;outline:none}.tender-field input:focus,.tender-field select:focus,.tender-field textarea:focus{border-color:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.1)}.tender-field textarea{min-height:150px;resize:vertical;line-height:1.55}.tender-field textarea:disabled{background:#f8fafc;color:#94a3b8}.tender-or{display:flex;align-items:center;gap:12px;margin:17px 0;color:#94a3b8;font-size:11px;font-weight:700}.tender-or:before,.tender-or:after{content:"";height:1px;background:#e2e8f0;flex:1}.tender-actions{display:flex;justify-content:flex-end;margin-top:16px}.tender-actions button{border:0;border-radius:10px;background:#0f172a;color:#fff;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer}.tender-actions button:disabled{opacity:.45;cursor:not-allowed}.tender-error{margin-bottom:20px;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:12px;padding:12px 14px;font-size:13px}.tender-status{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:capitalize;white-space:nowrap}.tender-status.validated{background:#ecfdf5;color:#047857}.tender-status.needs_review{background:#fffbeb;color:#b45309}.tender-status.high_risk{background:#fef2f2;color:#b91c1c}.tender-status.failed{background:#f1f5f9;color:#475569}.tender-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}.tender-metrics div{border:1px solid #e2e8f0;background:#f8fafc;border-radius:12px;padding:14px}.tender-metrics span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}.tender-metrics strong{font-size:22px;color:#0f172a}.tender-report-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}.tender-gap{padding:10px 12px;border-left:3px solid #f59e0b;background:#fffbeb;border-radius:0 8px 8px 0;color:#475569;font-size:12px;line-height:1.5;margin-bottom:8px}.tender-tags{display:flex;flex-wrap:wrap;gap:7px}.tender-tags span{padding:6px 9px;border-radius:8px;background:#f1f5f9;color:#334155;font-size:11px}.tender-muted{margin:0;color:#64748b;font-size:13px;line-height:1.6}.requirement-list{display:grid;gap:12px}.requirement-card{border:1px solid #e2e8f0;border-radius:13px;padding:16px;background:#fff}.requirement-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.requirement-index{font-size:11px;font-weight:800;color:#475569;margin-right:8px}.requirement-type{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8}.requirement-badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.req-status,.risk-badge{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700;text-transform:capitalize}.req-status.matched{background:#ecfdf5;color:#047857}.req-status.partially_matched,.req-status.review{background:#eff6ff;color:#1d4ed8}.req-status.missing,.req-status.outdated_reference{background:#fef2f2;color:#b91c1c}.risk-badge.low{background:#ecfdf5;color:#047857}.risk-badge.medium{background:#fffbeb;color:#b45309}.risk-badge.high,.risk-badge.critical{background:#fef2f2;color:#b91c1c}.requirement-text{margin:0;color:#334155;font-size:13px;line-height:1.65}.requirement-evidence{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:13px;padding:10px 12px;border-radius:9px;background:#f8fafc;font-size:11px;color:#475569}.requirement-evidence strong{color:#0f172a}.requirement-evidence small{color:#94a3b8}.requirement-missing{margin-top:12px;padding:10px 12px;border-radius:9px;background:#fef2f2;color:#b91c1c;font-size:11px}.tender-history{display:grid;gap:8px}.tender-history-item{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:12px 14px;cursor:pointer}.tender-history-item:hover{background:#f8fafc}.tender-history-item strong{display:block;color:#0f172a;font-size:13px}.tender-history-item span:not(.tender-status){display:block;color:#94a3b8;font-size:10px;margin-top:4px}@media(max-width:760px){.tender-page{padding:22px 16px 44px}.tender-header{flex-direction:column}.tender-form-grid,.tender-report-grid{grid-template-columns:1fr}.tender-metrics{grid-template-columns:repeat(2,1fr)}.requirement-card-top{align-items:flex-start;flex-direction:column}.requirement-badges{justify-content:flex-start}}
+
+/* ================================
+   Phase 8 Dashboard
+   ================================ */
+.dashboard-page{max-width:1280px;margin:0 auto;padding:4px 0 48px}.dashboard-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:26px}.dashboard-eyebrow{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:6px}.dashboard-header h1{margin:0;font-size:30px;line-height:1.2;font-weight:750;letter-spacing:-.02em;color:#0f172a}.dashboard-header p{margin:7px 0 0;color:#64748b;font-size:14px;line-height:1.6}.dashboard-refresh{display:inline-flex;align-items:center;gap:7px;border:1px solid #dbe3ec;background:#fff;color:#334155;border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(15,23,42,.04)}.dashboard-refresh:disabled{opacity:.6;cursor:default}.spin{animation:dashboard-spin 1s linear infinite}@keyframes dashboard-spin{to{transform:rotate(360deg)}}.dashboard-error{margin-bottom:18px;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:12px;padding:12px 14px;font-size:13px}.dashboard-loading{border:1px solid #e2e8f0;background:#fff;border-radius:16px;padding:40px;text-align:center;color:#64748b}.dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.dashboard-link-card{text-decoration:none;color:inherit}.dashboard-metric-card{min-height:118px;background:#fff;border:1px solid #e2e8f0;border-radius:15px;padding:17px;display:flex;gap:13px;align-items:flex-start;box-shadow:0 3px 12px rgba(15,23,42,.035);transition:transform .15s,border-color .15s}.dashboard-link-card:hover .dashboard-metric-card{transform:translateY(-2px);border-color:#cbd5e1}.dashboard-metric-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#f1f5f9;color:#334155;flex-shrink:0}.dashboard-metric-copy{min-width:0}.dashboard-metric-copy span{display:block;color:#64748b;font-size:12px;font-weight:600}.dashboard-metric-copy strong{display:block;margin-top:5px;color:#0f172a;font-size:27px;line-height:1.1}.dashboard-metric-copy small{display:block;margin-top:6px;color:#94a3b8;font-size:10px}.dashboard-grid{display:grid;gap:16px}.dashboard-grid-main{grid-template-columns:1fr 1fr;margin-bottom:16px}.dashboard-grid-bottom{grid-template-columns:1fr 1fr;margin-bottom:16px}.dashboard-card{background:#fff;border:1px solid #e2e8f0;border-radius:15px;padding:19px;box-shadow:0 3px 12px rgba(15,23,42,.03)}.dashboard-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}.dashboard-card-heading h2{margin:0;color:#0f172a;font-size:15px;font-weight:750}.dashboard-card-heading p{margin:4px 0 0;color:#94a3b8;font-size:11px}.dashboard-card-heading>a{display:inline-flex;align-items:center;gap:5px;color:#475569;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap}.dashboard-card-heading>a:hover{color:#0f172a}.dashboard-progress-row{display:flex;justify-content:space-between;gap:12px;color:#64748b;font-size:12px;margin-bottom:8px}.dashboard-progress-row strong{color:#334155}.dashboard-progress{height:8px;background:#eef2f7;border-radius:999px;overflow:hidden}.dashboard-progress span,.dashboard-pipeline span,.risk-bar span{display:block;height:100%;border-radius:inherit;background:#334155}.dashboard-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.dashboard-mini-three{grid-template-columns:repeat(3,1fr)}.dashboard-mini-grid>div{border:1px solid #eef2f7;border-radius:10px;padding:11px}.dashboard-mini-grid span{display:block;font-size:10px;color:#94a3b8}.dashboard-mini-grid strong{display:block;margin-top:4px;font-size:18px;color:#0f172a}.dashboard-pipeline{display:flex;align-items:center;gap:10px;margin-top:17px}.dashboard-pipeline>div{flex:1;height:7px;background:#eef2f7;border-radius:999px;overflow:hidden}.dashboard-pipeline small{font-size:10px;color:#64748b;white-space:nowrap}.dashboard-risk-summary{display:grid;grid-template-columns:130px 1fr;gap:22px;align-items:start}.dashboard-risk-number{border:1px solid #fee2e2;background:#fff7f7;border-radius:12px;padding:15px}.dashboard-risk-number strong{display:block;font-size:30px;line-height:1;color:#b91c1c}.dashboard-risk-number span{display:block;margin-top:7px;color:#991b1b;font-size:10px;line-height:1.4}.dashboard-risk-bars{display:grid;gap:10px}.risk-bar-row>div:first-child{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#64748b;margin-bottom:4px}.risk-bar-row strong{color:#334155}.risk-bar{height:6px;background:#f1f5f9;border-radius:999px;overflow:hidden}.category-list{display:grid;gap:7px}.category-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #f1f5f9;padding:9px 0}.category-row:last-child{border-bottom:0}.category-row span{font-size:12px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.category-row strong{font-size:12px;color:#0f172a}.dashboard-list{display:grid}.dashboard-list-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:11px 0;border-bottom:1px solid #f1f5f9}.dashboard-list-row:last-child{border-bottom:0}.dashboard-list-row>div{min-width:0}.dashboard-list-row strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#334155;font-size:12px}.dashboard-list-row div span{display:block;margin-top:3px;color:#94a3b8;font-size:10px}.dashboard-status{flex-shrink:0;border-radius:999px;padding:5px 8px;background:#f1f5f9;color:#475569;font-size:9px;font-weight:800;text-transform:capitalize}.dashboard-status.validated,.dashboard-status.processed{background:#ecfdf5;color:#047857}.dashboard-status.high_risk,.dashboard-status.failed{background:#fef2f2;color:#b91c1c}.dashboard-status.needs_review,.dashboard-status.processing{background:#fffbeb;color:#b45309}.dashboard-status.uploaded{background:#eff6ff;color:#1d4ed8}.dashboard-activity{margin-bottom:16px}.dashboard-activity-id{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cbd5e1;font-size:9px}.dashboard-empty{padding:16px 0;color:#94a3b8;font-size:12px}.dashboard-activity .dashboard-list-row strong{text-transform:none}
+@media(max-width:1050px){.dashboard-metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:800px){.dashboard-grid-main,.dashboard-grid-bottom{grid-template-columns:1fr}.dashboard-header{align-items:flex-start;flex-direction:column}.dashboard-refresh{width:100%;justify-content:center}}@media(max-width:560px){.dashboard-metrics{grid-template-columns:1fr}.dashboard-page{padding-bottom:32px}.dashboard-card{padding:16px}.dashboard-risk-summary{grid-template-columns:1fr}.dashboard-mini-three{grid-template-columns:1fr 1fr}.dashboard-list-row{align-items:flex-start;flex-direction:column}.dashboard-status,.dashboard-activity-id{align-self:flex-start}}
+
+.tender-explainer{display:flex;gap:14px;align-items:flex-start;background:#f8fafc}.tender-explainer-icon{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:#e2e8f0;color:#0f172a;font-weight:800;flex:0 0 auto}.tender-explainer h2{margin:0 0 5px}.tender-explainer p{margin:0;color:#475569;font-size:12px;line-height:1.65}.tender-flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:12px 0}.tender-flow span{padding:6px 9px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#334155;font-size:10px;font-weight:700}.tender-flow b{color:#94a3b8;font-size:12px}.tender-note{margin-top:10px!important;font-size:11px!important;color:#64748b!important}.tender-report-intro{margin-bottom:16px;padding:11px 13px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;color:#475569;font-size:12px;line-height:1.6}.requirement-evidence p{flex-basis:100%;margin:3px 0 0;color:#475569;line-height:1.55}.requirement-evidence p strong{color:#0f172a}.tender-policy{white-space:nowrap}

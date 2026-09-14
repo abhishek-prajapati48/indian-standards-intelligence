@@ -1,0 +1,14 @@
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import api from '../services/api.js';
+
+export default function StandardDetail() {
+  const { id } = useParams();
+  const [standard, setStandard] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => { api.get(`/standards/${id}`).then(r => setStandard(r.data.data.standard)).catch(e => setError(e.response?.data?.message || 'Unable to load standard')); }, [id]);
+  if (error) return <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">{error}</div>;
+  if (!standard) return <div className="text-slate-500">Loading standard…</div>;
+  const groups = [['Certification', standard.certificationRequirements], ['Testing', standard.testingRequirements], ['Safety', standard.safetyRequirements], ['Installation', standard.installationRequirements]];
+  return <div><Link to="/standards" className="text-sm text-slate-500">← Back to Standards</Link><div className="mt-4 rounded-2xl border bg-white p-6"><div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{standard.standardNumber || 'No number'}</span>{standard.edition && <span className="rounded-full bg-slate-100 px-2 py-1 text-xs">Edition {standard.edition}</span>}<span className={`rounded-full px-2 py-1 text-xs ${standard.verified ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{standard.verified ? 'Verified' : 'Unverified'}</span></div><h1 className="mt-3 text-3xl font-bold">{standard.title}</h1><p className="mt-3 leading-7 text-slate-600">{standard.description || 'No description available.'}</p><div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[['Category',standard.category],['Product category',standard.productCategory],['Status',standard.status],['Published',standard.publicationDate ? new Date(standard.publicationDate).toLocaleDateString() : '—']].map(([k,v])=><div key={k} className="rounded-xl bg-slate-50 p-4"><div className="text-xs text-slate-400">{k}</div><div className="mt-1 text-sm font-medium">{v || '—'}</div></div>)}</div></div><div className="mt-6 grid gap-4 md:grid-cols-2">{groups.map(([title,values])=><section key={title} className="rounded-2xl border bg-white p-5"><h2 className="font-semibold">{title} requirements</h2>{values?.length ? <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600">{values.map((x,i)=><li key={i}>{x}</li>)}</ul> : <p className="mt-3 text-sm text-slate-400">No requirements recorded.</p>}</section>)}</div>{standard.source && <section className="mt-4 rounded-2xl border bg-white p-5"><h2 className="font-semibold">Source</h2><p className="mt-2 text-sm text-slate-600">{standard.source.name || 'Source record'}</p>{standard.source.url && <a className="mt-1 block text-sm text-blue-700 underline" href={standard.source.url} target="_blank" rel="noreferrer">{standard.source.url}</a>}</section>}</div>;
+}

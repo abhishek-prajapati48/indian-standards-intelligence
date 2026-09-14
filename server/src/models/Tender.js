@@ -1,0 +1,5 @@
+import mongoose from 'mongoose';
+const riskSchema = new mongoose.Schema({ level:{type:String,enum:['low','medium','high','critical']}, code:String, message:String, requirementId:{type:mongoose.Schema.Types.ObjectId,ref:'TenderRequirement',default:null} }, {_id:false});
+const schema = new mongoose.Schema({ title:{type:String,required:true,trim:true}, documentId:{type:mongoose.Schema.Types.ObjectId,ref:'Document',default:null,index:true}, uploadedBy:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true}, productName:String, summary:String, requirements:[{type:mongoose.Schema.Types.ObjectId,ref:'TenderRequirement'}], recommendedStandards:[mongoose.Schema.Types.Mixed], validationStatus:{type:String,enum:['not_started','validated','needs_review','high_risk','failed'],default:'not_started',index:true}, report:{type:mongoose.Schema.Types.Mixed,default:{}}, riskFlags:[riskSchema], validatedAt:{type:Date,default:null}, validationVersion:{type:Number,default:1} }, {timestamps:true});
+schema.index({title:'text',productName:'text',summary:'text'});
+export default mongoose.model('Tender',schema);
