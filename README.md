@@ -32,9 +32,9 @@ npm run dev
 
 Open:
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:5000
-- Health: http://localhost:5000/api/health
+- Frontend: https://indian-standards-intelligence.onrender.com/
+- Backend: https://indian-standards-intelligence.vercel.app/login
+- Health: https://indian-standards-intelligence.vercel.app/api/health
 
 ## MongoDB
 
