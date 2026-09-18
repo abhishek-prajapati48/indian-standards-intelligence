@@ -34,7 +34,7 @@ Open:
 
 - Frontend: https://indian-standards-intelligence.onrender.com/
 - Backend: https://indian-standards-intelligence.vercel.app/login
-- Health: https://indian-standards-intelligence.vercel.app/api/health
+- Health: https://indian-standards-intelligence.onrender.com/api/health
 
 ## MongoDB
 
