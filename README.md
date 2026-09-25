@@ -155,7 +155,7 @@ The current build includes Helmet, request IDs, global/auth/upload rate limits, 
 
 
 ## file structure
-
+```
 indian-standards-intelligence/
 │
 ├── client/                              # React Frontend
@@ -312,3 +312,4 @@ indian-standards-intelligence/
 ├── package-lock.json
 ├── .gitignore
 └── README.md
+```
