@@ -82,7 +82,7 @@ export default function Standards() {
     catch (e) { setError(e.response?.data?.message || 'Unable to delete standard'); }
   }
 
-  return <div>
+  return <div className="standards-page">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div><h1 className="text-3xl font-bold">Standards Registry</h1><p className="mt-2 text-slate-500">Browse verified standards metadata and relationships.</p></div>
       {isAdmin && <button onClick={beginCreate} className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">+ Add Standard</button>}
