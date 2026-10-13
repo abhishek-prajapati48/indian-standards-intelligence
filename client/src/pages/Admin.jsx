@@ -66,7 +66,7 @@ export default function Admin() {
 
   const roles = useMemo(() => analytics?.users?.byRole || [], [analytics]);
 
-  return <div className="space-y-7">
+  return <div className="admin-page space-y-7">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div><div className="flex items-center gap-3"><div className="rounded-2xl bg-indigo-100 p-3 text-indigo-600"><ShieldCheck size={28}/></div><div><h1 className="text-3xl font-bold tracking-tight text-slate-900">Admin & Advanced Analytics</h1><p className="mt-1 text-slate-500">System governance, data quality, user access and operational intelligence.</p></div></div></div>
       <button onClick={load} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"><RefreshCw size={16}/> Refresh</button>
