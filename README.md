@@ -267,8 +267,8 @@ indian-standards-intelligence/
 │   │   └── embedding.test.js
 │   ├── .env
 │   ├── package.json
-│   └── package-lock.json
-│
+│   └── package-lock.json        
+│   └── .env
 ├── ai/
 │   └── index.js
 │
