@@ -6,7 +6,7 @@
 - **Backend:** Render Free Web Service using `docker/server.Dockerfile`
 - **Database:** existing MongoDB Atlas cluster with MongoDB Vector Search
 - **Document storage:** Supabase Storage bucket named `documents`
-- **AI:** existing Gemini LLM + Hugging Face embeddings
+- **AI:** Gemini LLM + Gemini embeddings
 
 This architecture avoids relying on Render's local filesystem for uploaded documents. The backend downloads a document to a temporary runtime directory for PDF/text extraction, then removes the temporary copy. The durable document remains in Supabase Storage.
 
@@ -56,7 +56,7 @@ Important values:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `LLM_API_KEY`
-- `EMBEDDING_API_KEY`
+- The same `GEMINI_API_KEY` or `LLM_API_KEY` can authenticate embeddings; set `EMBEDDING_API_KEY` only if using a separate Gemini key.
 
 The service health path is `/api/health`.
 
@@ -93,7 +93,7 @@ After the first deployment, copy the real Vercel URL into Render's `CLIENT_URL` 
 - [ ] Supabase `documents` bucket exists
 - [ ] Supabase service-role key is only on Render
 - [ ] Gemini API key is only on Render
-- [ ] Hugging Face token is only on Render
+- [ ] Gemini API key is only on Render
 - [ ] `JWT_SECRET` is strong and unique
 - [ ] Vercel `VITE_API_URL` points to Render `/api`
 - [ ] Render `CLIENT_URL` points to Vercel origin

@@ -5,9 +5,22 @@ import Standard from '../models/Standard.js';
 import Document from '../models/Document.js';
 import { semanticVectorSearchByVector } from './vector.service.js';
 import { embedTexts, embeddingConfig } from './embedding.service.js';
-import { generateStructured, llmConfig } from './llm.service.js';
 
 const MAX_REQUIREMENTS = 24;
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  const results = Array(items.length);
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
 
 const TENDER_SIGNAL_PATTERNS = [
   /\b(tender|e-?tender|procurement|bid|bidder|bidding|request for proposal|rfp|request for quotation|rfq|quotation)\b/i,
@@ -57,7 +70,7 @@ export function isTenderLikeText(text) {
 const clean = (v) => String(v || '').replace(/\s+/g, ' ').trim();
 
 function classify(line) {
-  const s = line.toLowerCase();
+  const s = String(line || '').toLowerCase();
   if (/\b(test|testing|laboratory|sample|inspection)\b/.test(s)) return 'testing';
   if (/\b(safety|safe|hazard|fire|electrical|protection)\b/.test(s)) return 'safety';
   if (/\b(install|installation|commission|site)\b/.test(s)) return 'installation';
@@ -66,21 +79,27 @@ function classify(line) {
   return 'technical';
 }
 
-function splitRequirements(text) {
-  const lines = String(text || '').replace(/\r/g, '').split(/\n+/).map(clean).filter(Boolean);
-  const candidates = [];
-  for (const line of lines) {
-    const item = line.replace(/^(?:[-•*▪◦]|\(?\d{1,3}[.)])\s*/, '').trim();
-    if (item.length < 25 || item.length > 700) continue;
-    if (/^(contents|table of contents|introduction|background|scope|definitions|general conditions|instructions to bidders)$/i.test(item)) continue;
-    if (/\b(shall|must|required|required to|comply|conform|meet|provide|include|should|specification|standard|certificate|test|safety|installation|warranty)\b/i.test(item)) candidates.push(item);
+export function splitRequirements(text) {
+  const sourceLines = String(text || '').replace(/\r/g, '').split(/\n+/).map(clean).filter(Boolean);
+  const candidates = sourceLines.flatMap((line) => line.split(/(?<=[.!?])\s+(?=[A-Z0-9(])/).map(clean));
+  const seen = new Set();
+  const requirements = [];
+
+  for (const candidate of candidates) {
+    const item = candidate.replace(/^(?:[-•*▪◦]|\(?\d{1,3}[.)])\s*/, '').trim();
+    if (item.length < 35 || item.length > 700) continue;
+    if (/^(contents|table of contents|introduction|background|scope|definitions|general conditions|instructions to bidders)\b/i.test(item)) continue;
+    if (/\b(?:comply\s*\/\s*deviate|deviate\s*\/\s*comply)\b.*\bdocument reference\b/i.test(item)) continue;
+    if (!/\b(shall|must|required|required to|comply|conform|meet|provide|include|should|specification|standard|certificate|test|safety|installation|warranty)\b/i.test(item)) continue;
+
+    const normalized = item.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    requirements.push({ text: item, type: classify(item), requiredStandard: '' });
+    if (requirements.length === MAX_REQUIREMENTS) break;
   }
-  if (candidates.length < 3) {
-    for (const sentence of String(text || '').split(/(?<=[.!?])\s+/).map(clean)) {
-      if (sentence.length >= 35 && sentence.length <= 700 && /\b(shall|must|required|comply|conform|standard|certificate|test|safety)\b/i.test(sentence)) candidates.push(sentence);
-    }
-  }
-  return [...new Set(candidates)].slice(0, MAX_REQUIREMENTS);
+
+  return requirements;
 }
 
 function normalizeStandardRef(value) {
@@ -142,7 +161,7 @@ function standardReferenceQuery(ref) {
 
 async function findMatches(requirement, explicitRefs, queryVector = null) {
   const matches = [];
-  const lowerRequirement = requirement.toLowerCase();
+  const lowerRequirement = String(requirement || '').toLowerCase();
   const refs = explicitRefs.filter((r) => {
     const candidates = standardNumberCandidates(r);
     return candidates.some((candidate) => lowerRequirement.includes(candidate.toLowerCase())) || lowerRequirement.includes(r.toLowerCase());
@@ -223,12 +242,6 @@ function riskFor(status, confidence, verified) {
   return confidence >= 0.8 ? 'low' : 'medium';
 }
 
-async function llmReview(text, requirements) {
-  if (!llmConfig().configured) return null;
-  const prompt = `You are a tender validation assistant. Use ONLY the supplied tender text. Do not invent Indian Standard numbers. Return JSON only: {"summary":"...","productName":"...","requirements":[{"text":"...","type":"technical|testing|safety|installation|certification|quality","requiredStandard":"..."}]}. Tender text:\n${String(text).slice(0, 18000)}\nInitial requirements:\n${JSON.stringify(requirements)}`;
-  try { return await generateStructured(prompt); } catch { return null; }
-}
-
 export async function validateTender({ userId, documentId, title, text }) {
   let sourceText = clean(text); let document = null;
   if (documentId) {
@@ -248,43 +261,61 @@ export async function validateTender({ userId, documentId, title, text }) {
     throw Object.assign(new Error(`${relevance.reason} Upload or submit an actual tender/procurement document.`), { code: 'NOT_A_TENDER_DOCUMENT' });
   }
 
-  let initial = splitRequirements(sourceText);
-  const llm = await llmReview(sourceText, initial);
-  if (Array.isArray(llm?.requirements) && llm.requirements.length) initial = llm.requirements.map((r) => ({ text: clean(r.text), type: clean(r.type) || classify(r.text), requiredStandard: clean(r.requiredStandard) })).filter((r) => r.text.length >= 15).slice(0, MAX_REQUIREMENTS);
+  const initial = splitRequirements(sourceText);
   const explicitRefs = extractExplicitStandards(sourceText);
 
-  const tender = await Tender.create({ title: clean(title) || document?.originalName || 'Tender validation', documentId: document?._id || null, uploadedBy: userId, productName: clean(llm?.productName), summary: clean(llm?.summary) || `Validation generated from ${document?.originalName || 'submitted tender text'}`, validationStatus: 'not_started', report: { explicitStandards: explicitRefs, llmUsed: Boolean(llm) } });
+  const tender = await Tender.create({ title: clean(title) || document?.originalName || 'Tender validation', documentId: document?._id || null, uploadedBy: userId, productName: '', summary: `Requirements extracted directly from ${document?.originalName || 'submitted tender text'}`, validationStatus: 'not_started', report: { explicitStandards: explicitRefs, llmUsed: false } });
 
-  const created = []; const riskFlags = []; let matched = 0; let highRisk = 0;
+  const riskFlags = []; let matched = 0; let highRisk = 0;
   let requirementVectors = [];
+  let embeddingError = '';
   if (initial.length && embeddingConfig().configured) {
     try {
-      requirementVectors = await embedTexts(initial.map((item) => item.text));
-    } catch {
+      requirementVectors = await embedTexts(initial.map((item) => item.text), { taskType: 'RETRIEVAL_QUERY' });
+    } catch (error) {
       requirementVectors = [];
+      embeddingError = error.message;
     }
   }
-  for (let index = 0; index < initial.length; index += 1) {
-    const item = initial[index];
-    const matches = await findMatches(item.text, explicitRefs, requirementVectors[index] || null);
+
+  const matchedRequirements = await mapWithConcurrency(initial, 4, async (item, index) => ({
+    item,
+    matches: await findMatches(item.text, explicitRefs, requirementVectors[index] || null)
+  }));
+  const requirementRecords = matchedRequirements.map(({ item, matches }) => {
     const best = matches[0];
     const status = item.requiredStandard && !matches.length ? 'missing' : statusFor(matches);
     const confidence = best ? Math.min(1, Math.max(0, best.score)) : 0;
     const verified = Boolean(best?.standard?.verified); const riskLevel = riskFor(status, confidence, verified);
     if (status === 'matched') matched += 1; if (riskLevel === 'high' || riskLevel === 'critical') highRisk += 1;
     const evidence = matches.slice(0, 3).map((m) => ({ standardId: String(m.standard._id), standardNumber: m.standard.standardNumber || null, title: m.standard.title, score: Number(m.score || 0), source: m.source, verified: Boolean(m.standard.verified), status: m.standard.status || null, sourceMetadata: m.standard.source || null, why: explainMatch(m.source, Number(m.score || 0), m.standard) }));
-    const req = await TenderRequirement.create({ tenderId: tender._id, type: item.type || classify(item.text), text: item.text, requiredStandard: item.requiredStandard || '', matchedStandard: best?.standard?._id || null, matchedStandards: matches.map((m) => m.standard._id), status, confidence, evidence, sourceReference: document ? `Document: ${document.originalName}` : 'Submitted tender text', riskLevel });
-    created.push(req);
-    if (status === 'missing') riskFlags.push({ level: riskLevel, code: 'MISSING_STANDARD', message: 'No matching standard was found in the current registry.', requirementId: req._id });
-    if (status === 'outdated_reference') riskFlags.push({ level: riskLevel, code: 'OUTDATED_STANDARD', message: 'The referenced or matched standard appears inactive or superseded in the registry.', requirementId: req._id });
-    if (!verified && best) riskFlags.push({ level: 'medium', code: 'UNVERIFIED_SOURCE', message: 'The best matching standard is not marked as verified.', requirementId: req._id });
+    return {
+      tenderId: tender._id,
+      type: item.type || classify(item.text),
+      text: item.text,
+      requiredStandard: item.requiredStandard || '',
+      matchedStandard: best?.standard?._id || null,
+      matchedStandards: matches.map((m) => m.standard._id),
+      status,
+      confidence,
+      evidence,
+      sourceReference: document ? `Document: ${document.originalName}` : 'Submitted tender text',
+      riskLevel
+    };
+  });
+  const created = await TenderRequirement.insertMany(requirementRecords);
+  for (const req of created) {
+    const best = req.evidence?.[0];
+    if (req.status === 'missing') riskFlags.push({ level: req.riskLevel, code: 'MISSING_STANDARD', message: 'No matching standard was found in the current registry.', requirementId: req._id });
+    if (req.status === 'outdated_reference') riskFlags.push({ level: req.riskLevel, code: 'OUTDATED_STANDARD', message: 'The referenced or matched standard appears inactive or superseded in the registry.', requirementId: req._id });
+    if (best && !best.verified) riskFlags.push({ level: 'medium', code: 'UNVERIFIED_SOURCE', message: 'The best matching standard is not marked as verified.', requirementId: req._id });
   }
 
   const recs = []; const seen = new Set();
   for (const req of created) for (const e of req.evidence || []) if (!seen.has(e.standardId) && e.score >= 0.55) { seen.add(e.standardId); recs.push(e); }
   const missing = created.filter((r) => r.status === 'missing'); const outdated = created.filter((r) => r.status === 'outdated_reference');
   const validationStatus = highRisk ? 'high_risk' : (missing.length || outdated.length ? 'needs_review' : 'validated');
-  const report = { generatedAt: new Date().toISOString(), validationScope: 'standards_coverage', validationScopeLabel: 'Tender requirements mapped against the Standards Registry', requirementsAnalyzed: created.length, matchedRequirements: matched, stronglyMappedRequirements: matched, missingRequirements: missing.length, standardsCoverageGaps: missing.map((r) => ({ requirementId: String(r._id), text: r.text })), outdatedReferences: outdated.length, coverage: created.length ? Number((matched / created.length).toFixed(3)) : 0, explicitStandards: explicitRefs, complianceGaps: missing.map((r) => ({ requirementId: String(r._id), text: r.text })), outdatedStandards: outdated.map((r) => ({ requirementId: String(r._id), text: r.text, standard: r.evidence?.[0] || null })), recommendedStandards: recs.slice(0, 10), riskSummary: { highOrCritical: highRisk, medium: riskFlags.filter((x) => x.level === 'medium').length, totalFlags: riskFlags.length }, disclaimer: 'This validation measures standards coverage of tender requirements. It is not supplier compliance certification. Confirm current regulatory status, applicability, editions, amendments and evidence against authoritative sources before issuing or evaluating a tender.', llmUsed: Boolean(llm), llm: llmConfig() };
+  const report = { generatedAt: new Date().toISOString(), validationScope: 'standards_coverage', validationScopeLabel: 'Tender requirements mapped against the Standards Registry', requirementsAnalyzed: created.length, matchedRequirements: matched, stronglyMappedRequirements: matched, missingRequirements: missing.length, standardsCoverageGaps: missing.map((r) => ({ requirementId: String(r._id), text: r.text })), outdatedReferences: outdated.length, coverage: created.length ? Number((matched / created.length).toFixed(3)) : 0, explicitStandards: explicitRefs, complianceGaps: missing.map((r) => ({ requirementId: String(r._id), text: r.text })), outdatedStandards: outdated.map((r) => ({ requirementId: String(r._id), text: r.text, standard: r.evidence?.[0] || null })), recommendedStandards: recs.slice(0, 10), riskSummary: { highOrCritical: highRisk, medium: riskFlags.filter((x) => x.level === 'medium').length, totalFlags: riskFlags.length }, disclaimer: 'This validation measures standards coverage of tender requirements. It is not supplier compliance certification. Confirm current regulatory status, applicability, editions, amendments and evidence against authoritative sources before issuing or evaluating a tender.', llmUsed: false, ...(embeddingError ? { semanticSearchWarning: `Semantic matching was unavailable: ${embeddingError}` } : {}) };
   tender.requirements = created.map((r) => r._id); tender.recommendedStandards = recs.slice(0, 10); tender.validationStatus = validationStatus; tender.report = report; tender.riskFlags = riskFlags; tender.validatedAt = new Date(); await tender.save();
   return { tender, requirements: created, report };
 }

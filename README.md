@@ -132,10 +132,10 @@ Supported formats: PDF, TXT, Markdown, CSV, JSON and XML.
 
 ## Phase 5 — Embeddings and Vector Search
 
-Phase 5 uses a server-side Hugging Face embedding provider and MongoDB Atlas Vector Search. Configure `EMBEDDING_API_KEY`, run `npm run vector-index`, then `npm run embed` for existing processed documents. New documents automatically attempt embedding after text chunking.
+Phase 5 uses Gemini embeddings (`gemini-embedding-001`, 384 dimensions) and MongoDB Atlas Vector Search. The embedding API key uses `EMBEDDING_API_KEY`, `GEMINI_API_KEY`, or the existing `LLM_API_KEY`. After changing from another embedding model, run `npm run reindex-embeddings` to regenerate vectors for all processed documents; `npm run embed` only indexes pending or failed documents. New documents automatically attempt embedding after text chunking.
 
-## Phase 6 — RAG + AI Recommendation Engine
-The `/recommendations` module retrieves semantically relevant document chunks, enriches them with Standard/document metadata, and asks a configured LLM to synthesize a source-backed recommendation. The prompt explicitly prohibits invented IS numbers or regulatory facts. Configure `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`, and optionally `LLM_API_URL` in `server/.env`.
+## Phase 6 — Semantic Standards Recommendations
+The `/recommendations` module uses Gemini only to create query embeddings, retrieves matching indexed document chunks using MongoDB Atlas Vector Search, and constructs explanations directly from those source excerpts and metadata. It does not call a generative LLM or web search to answer recommendation queries. Gemini text generation remains a separately configured capability for other application features.
 
 ## Phase 7 — Tender Validation
 The Tender Validation module checks tender requirements against the Standards Registry and indexed evidence. Procurement Officers and Admins can select a processed document from Documents or paste tender text. The validator detects explicit IS/ISO/IEC references, extracts requirements, matches available standards, identifies missing/outdated references, calculates coverage, and produces risk flags and a saved validation report.
@@ -150,7 +150,7 @@ Admin / Advanced Analytics is implemented in the `/admin` route with governance 
 
 ### Phase 9 security
 
-The current build includes Helmet, request IDs, global/auth/upload rate limits, strict Zod request validation, escaped search regexes, bounded pagination and AI inputs, PDF magic-byte validation, current-user checks on authenticated requests, production-safe error responses, and automated server security tests. See `PHASE_10_COMPLETE.md`.
+The current build includes Helmet, request IDs, global/auth/upload rate limits, strict Zod request validation, escaped search regexes, bounded pagination and AI inputs, PDF magic-byte validation, current-user checks on authenticated requests, production-safe error responses, and automated server security tests.
 
 
 
@@ -265,7 +265,7 @@ indian-standards-intelligence/
 │   │
 │   ├── tests/
 │   │   └── embedding.test.js
-│   │
+│   ├── .env
 │   ├── package.json
 │   └── package-lock.json
 │
@@ -305,7 +305,7 @@ indian-standards-intelligence/
 │   ├── server.Dockerfile
 │   ├── client.Dockerfile
 │   └── nginx.conf
-│
+├── .env
 ├── docker-compose.yml
 ├── render.yaml
 ├── package.json

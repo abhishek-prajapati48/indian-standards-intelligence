@@ -39,8 +39,6 @@ services:
       - key: LLM_API_URL
         value: ""
       - key: EMBEDDING_PROVIDER
-        value: huggingface
-      - key: EMBEDDING_API_KEY
-        sync: false
+        value: gemini
       - key: EMBEDDING_MODEL
-        value: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+        value: gemini-embedding-001

@@ -1,91 +1,81 @@
 import { env } from '../config/env.js';
 
-const DEFAULT_MODEL = 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2';
+const DEFAULT_MODEL = 'gemini-embedding-001';
 const DIMENSIONS = 384;
-const BATCH_SIZE = 4;
-
-function meanPoolTokenEmbeddings(tokens) {
-  if (!Array.isArray(tokens) || !tokens.length) return null;
-  const dimensions = tokens[0]?.length;
-  if (!dimensions) return null;
-  const vector = Array(dimensions).fill(0);
-  let count = 0;
-  for (const token of tokens) {
-    if (!Array.isArray(token) || token.length !== dimensions) continue;
-    for (let i = 0; i < dimensions; i += 1) vector[i] += Number(token[i]) || 0;
-    count += 1;
-  }
-  if (!count) return null;
-  return vector.map((value) => value / count);
-}
+const BATCH_SIZE = 100;
 
 function l2Normalize(vector) {
   const norm = Math.sqrt(vector.reduce((sum, value) => sum + value * value, 0));
   return norm ? vector.map((value) => value / norm) : vector;
 }
 
-function normalizeOne(output) {
-  if (!Array.isArray(output)) throw new Error('Embedding provider returned an invalid response.');
-  if (output.length === DIMENSIONS && output.every((value) => Number.isFinite(Number(value)))) {
-    return l2Normalize(output.map(Number));
+function normalizeBatch(embeddings, expected) {
+  if (!Array.isArray(embeddings) || embeddings.length !== expected) {
+    throw new Error(`Gemini returned ${Array.isArray(embeddings) ? embeddings.length : 'an invalid number of'} vectors for ${expected} inputs.`);
   }
-  const pooled = meanPoolTokenEmbeddings(output);
-  if (!pooled) throw new Error('Unable to pool embedding provider response.');
-  return l2Normalize(pooled);
-}
 
-function normalizeBatch(output, expected) {
-  if (expected === 1) return [normalizeOne(output)];
-  if (!Array.isArray(output) || output.length !== expected) {
-    throw new Error(`Embedding provider returned ${Array.isArray(output) ? output.length : 'an invalid number of'} vectors for ${expected} inputs.`);
-  }
-  return output.map(normalizeOne);
+  return embeddings.map(({ values } = {}) => {
+    if (!Array.isArray(values) || values.length !== DIMENSIONS || !values.every((value) => Number.isFinite(Number(value)))) {
+      throw new Error(`Gemini must return a ${DIMENSIONS}-dimensional embedding vector.`);
+    }
+    return l2Normalize(values.map(Number));
+  });
 }
 
 export function embeddingConfig() {
   return {
-    provider: env.EMBEDDING_PROVIDER,
-    model: env.EMBEDDING_MODEL,
+    provider: String(env.EMBEDDING_PROVIDER || 'gemini').toLowerCase(),
+    model: env.EMBEDDING_MODEL || DEFAULT_MODEL,
     dimensions: DIMENSIONS,
     configured: Boolean(env.EMBEDDING_API_KEY)
   };
 }
 
-async function callHuggingFace(inputs) {
+async function callGemini(inputs, taskType) {
   if (!env.EMBEDDING_API_KEY) {
-    const error = new Error('EMBEDDING_API_KEY is not configured. Create a Hugging Face access token with Inference Providers permission and add it to server/.env.');
+    const error = new Error('A Gemini API key is not configured. Set EMBEDDING_API_KEY, GEMINI_API_KEY, or LLM_API_KEY in server/.env.');
     error.code = 'EMBEDDING_NOT_CONFIGURED';
     throw error;
   }
 
-  const model = env.EMBEDDING_MODEL || DEFAULT_MODEL;
-  const endpoint = `https://router.huggingface.co/hf-inference/models/${encodeURIComponent(model).replace(/%2F/g, '/')}/pipeline/feature-extraction`;
+  const model = (env.EMBEDDING_MODEL || DEFAULT_MODEL).replace(/^models\//, '');
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:batchEmbedContents`;
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${env.EMBEDDING_API_KEY}`,
+      'x-goog-api-key': env.EMBEDDING_API_KEY,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ inputs })
+    signal: AbortSignal.timeout(60000),
+    body: JSON.stringify({
+      model: `models/${model}`,
+      requests: inputs.map((text) => ({
+        model: `models/${model}`,
+        content: { parts: [{ text }] },
+        taskType,
+        outputDimensionality: DIMENSIONS
+      }))
+    })
   });
 
   const raw = await response.text();
   let data;
   try { data = JSON.parse(raw); } catch { data = raw; }
   if (!response.ok) {
-    const message = typeof data === 'object' ? data?.error || JSON.stringify(data) : String(data);
+    const message = typeof data === 'object' ? data?.error?.message || JSON.stringify(data) : String(data);
     const error = new Error(`Embedding provider request failed (${response.status}): ${message}`);
     error.code = 'EMBEDDING_PROVIDER_ERROR';
     throw error;
   }
-  return normalizeBatch(data, inputs.length);
+  return normalizeBatch(data?.embeddings, inputs.length);
 }
 
-export async function embedTexts(texts) {
+export async function embedTexts(texts, { taskType = 'RETRIEVAL_DOCUMENT' } = {}) {
   const clean = texts.map((text) => String(text || '').trim()).filter(Boolean);
   if (!clean.length) return [];
-  const provider = String(env.EMBEDDING_PROVIDER || 'huggingface').toLowerCase();
-  if (provider !== 'huggingface') {
+
+  const provider = String(env.EMBEDDING_PROVIDER || 'gemini').toLowerCase();
+  if (provider !== 'gemini') {
     const error = new Error(`Unsupported embedding provider: ${provider}`);
     error.code = 'EMBEDDING_PROVIDER_UNSUPPORTED';
     throw error;
@@ -94,14 +84,13 @@ export async function embedTexts(texts) {
   const vectors = [];
   for (let start = 0; start < clean.length; start += BATCH_SIZE) {
     const batch = clean.slice(start, start + BATCH_SIZE);
-    const batchVectors = await callHuggingFace(batch);
-    vectors.push(...batchVectors);
+    vectors.push(...await callGemini(batch, taskType));
   }
   return vectors;
 }
 
-export async function embedText(text) {
-  const [vector] = await embedTexts([text]);
+export async function embedText(text, options) {
+  const [vector] = await embedTexts([text], options);
   return vector;
 }
 

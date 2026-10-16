@@ -34,12 +34,13 @@ export function llmConfig() {
   };
 }
 
-async function callGemini(prompt) {
+async function callGemini(prompt, signal) {
   const model = env.LLM_MODEL || DEFAULT_MODEL;
   const endpoint = env.LLM_API_URL || `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(env.LLM_API_KEY)}`;
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal,
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.1, responseMimeType: 'application/json' }
@@ -56,12 +57,13 @@ async function callGemini(prompt) {
   return extractText(data);
 }
 
-async function callHuggingFace(prompt) {
+async function callHuggingFace(prompt, signal) {
   const model = env.LLM_MODEL || 'HuggingFaceH4/zephyr-7b-beta';
   const endpoint = env.LLM_API_URL || `https://router.huggingface.co/hf-inference/models/${encodeURIComponent(model).replace(/%2F/g, '/')}`;
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.LLM_API_KEY}`, 'Content-Type': 'application/json' },
+    signal,
     body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 1200, temperature: 0.1, return_full_text: false } })
   });
   const raw = await response.text();
@@ -75,14 +77,14 @@ async function callHuggingFace(prompt) {
   return extractText(data);
 }
 
-export async function generateStructured(prompt) {
+export async function generateStructured(prompt, { signal } = {}) {
   if (!env.LLM_API_KEY) {
     const error = new Error('LLM_API_KEY is not configured. Add an LLM provider key to server/.env.');
     error.code = 'LLM_NOT_CONFIGURED';
     throw error;
   }
   const provider = String(env.LLM_PROVIDER || 'gemini').toLowerCase();
-  const text = provider === 'huggingface' ? await callHuggingFace(prompt) : await callGemini(prompt);
+  const text = provider === 'huggingface' ? await callHuggingFace(prompt, signal) : await callGemini(prompt, signal);
   const parsed = parseJson(text);
   if (!parsed) {
     const error = new Error('LLM returned a non-JSON response. Try again or use a provider/model with reliable JSON output.');

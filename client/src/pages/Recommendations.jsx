@@ -24,11 +24,12 @@ export default function Recommendations() {
 
     {/* Header */}
     <div className="recommendations-header">
-      <h1>AI Standards Recommendations</h1>
+      <h1>Standards Recommendations from Semantic Search</h1>
 
       <p>
-        Ask a procurement requirement in natural language. The engine
-        retrieves evidence first, then generates a source-backed recommendation.
+        Search indexed document passages using a procurement requirement. Results
+        and explanations come only from retrieved source text; no generative answer
+        or web search is used.
       </p>
     </div>
 
@@ -86,7 +87,7 @@ export default function Recommendations() {
           <div className="recommendation-section-header">
 
             <h2>
-              AI analysis
+              Search explanation
             </h2>
 
             <span className="language-badge">
@@ -96,8 +97,10 @@ export default function Recommendations() {
           </div>
 
           <p className="ai-analysis">
-            {data.notice ||
-              "The indexed documents contain relevant evidence. Review the cited evidence below; regulatory status and applicability should be confirmed against authoritative sources."}
+            {data.answer || "The indexed documents contain relevant evidence. Review the cited evidence below."}
+          </p>
+          <p className="ai-analysis">
+            {data.notice || "Verify regulatory facts, current status, and applicability against authoritative sources before procurement decisions."}
           </p>
 
         </div>
@@ -182,7 +185,7 @@ export default function Recommendations() {
                     </h3>
 
                     <p className="evidence-source">
-                      Source: {e.documentName || e.source || "Source document"}
+                      Source: {e.documentName || e.source || "Source document"} · excerpt from chunk {Number(e.chunkIndex || 0) + 1}
                     </p>
 
                   </div>

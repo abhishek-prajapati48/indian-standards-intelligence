@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from '../server/node_modules/mongoose/index.js';
 dotenv.config({ path: new URL('../server/.env', import.meta.url) });
 import { env } from '../server/src/config/env.js';
+import { DIMENSIONS } from '../server/src/services/embedding.service.js';
 
 const collectionName = 'standardchunks';
 const indexName = 'standard_chunks_vector_index';
@@ -16,7 +17,7 @@ async function main() {
       type: 'vectorSearch',
       definition: {
         fields: [
-          { type: 'vector', path: 'embedding', numDimensions: 384, similarity: 'cosine' },
+          { type: 'vector', path: 'embedding', numDimensions: DIMENSIONS, similarity: 'cosine' },
           { type: 'filter', path: 'standardId' }
         ]
       }

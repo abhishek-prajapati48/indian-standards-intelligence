@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Document from '../models/Document.js';
 import StandardChunk from '../models/StandardChunk.js';
-import { embedTexts, embeddingConfig } from './embedding.service.js';
+import { DIMENSIONS, embedTexts, embeddingConfig } from './embedding.service.js';
 
 export async function embedDocument(documentId) {
   const document = await Document.findById(documentId);
@@ -15,7 +15,7 @@ export async function embedDocument(documentId) {
   await document.save();
 
   try {
-    const vectors = await embedTexts(chunks.map((chunk) => chunk.text));
+    const vectors = await embedTexts(chunks.map((chunk) => chunk.text), { taskType: 'RETRIEVAL_DOCUMENT' });
     if (vectors.length !== chunks.length) throw new Error('Embedding count does not match chunk count.');
 
     const ops = chunks.map((chunk, index) => ({
@@ -47,8 +47,8 @@ export async function embedDocument(documentId) {
 }
 
 export async function semanticVectorSearchByVector({ queryVector, limit = 8, standardId = null }) {
-  if (!Array.isArray(queryVector) || queryVector.length !== 384) {
-    throw new Error('A 384-dimensional query vector is required for semantic search.');
+  if (!Array.isArray(queryVector) || queryVector.length !== DIMENSIONS) {
+    throw new Error(`A ${DIMENSIONS}-dimensional query vector is required for semantic search.`);
   }
   const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 20);
   const pipeline = [
@@ -77,6 +77,6 @@ export async function semanticVectorSearchByVector({ queryVector, limit = 8, sta
 }
 
 export async function semanticVectorSearch({ query, limit = 8, standardId = null }) {
-  const vector = await embedTexts([query]);
+  const vector = await embedTexts([query], { taskType: 'RETRIEVAL_QUERY' });
   return semanticVectorSearchByVector({ queryVector: vector[0], limit, standardId });
 }
