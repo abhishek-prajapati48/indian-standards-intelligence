@@ -267,8 +267,8 @@ indian-standards-intelligence/
 │   │   └── embedding.test.js
 │   │
 │   ├── package.json
-│   └── package-lock.json
-│
+│   └── package-lock.json        
+│   └── .env
 ├── ai/
 │   └── index.js
 │
@@ -305,7 +305,7 @@ indian-standards-intelligence/
 │   ├── server.Dockerfile
 │   ├── client.Dockerfile
 │   └── nginx.conf
-│
+├── .env
 ├── docker-compose.yml
 ├── render.yaml
 ├── package.json
